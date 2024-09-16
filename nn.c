@@ -421,6 +421,10 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
             correct_count += count_matches(y_pred,y_target, last_layer -> out_size, batch_size);
             //printf("Correct: %d\n",correct_count);
             mse_deriv(y_pred,y_target,nn->error, batch_size,y_size);
+
+            printf("********** nn error ***********\n");
+            printf("batch %d y_size %d\n",batch_size,y_size);
+            print_matrix(nn->error, batch_size,y_size);
             update_errors(nn,batch_size,learning_rate);
 
             x_curr += x_size * batch_size;
@@ -484,7 +488,7 @@ void open_file(char *file, int size_entry, int size, float *out)
 //////////////////////////
 
 void print_matrix(float *matrix,int m,int n)
-{
+{  
     int row, column=0;
 
     for (row=0; row<m; row++)
@@ -552,6 +556,9 @@ NN* new_nn_debug()
    nn-> layer[0] = (void*) new_FC_layer(3,4);
    nn-> layer[1] = (void*) new_Relu_layer(4);
    nn-> layer[2] = (void*) new_FC_layer(4,2);
+
+   nn -> in_size = 3;
+   nn -> out_size = 2;
 
    allocate_batch(nn,1);
 
