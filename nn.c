@@ -234,18 +234,18 @@ void relu(float *in, float *out, int r, int c)
     }
 }
 
-void relu_deriv(float *in, float *out, int r, int c)
+void relu_deriv(float *out_error, float *in_error, float *in,  int r, int c)
 {
 
     for(int i=0;i<r*c; i++)
     {
         if(in[i] > 0)
         {
-            out[i] = 1;
+           in_error[i] = out_error[i]* 1;
         }
         else
         {
-            out[i] = 0;
+            in_error[i] = out_error[i]* 0;
         } 
     }
 }
@@ -370,7 +370,7 @@ void update_errors(NN* nn, int batch_size,float lr){
               break;
             case Relu:
                 ReluLayer *relu_layer = (ReluLayer*) layer;
-                relu_deriv(out_error, relu_layer-> error, batch_size, relu_layer -> in_size);
+                relu_deriv(out_error, relu_layer-> error, relu_layer -> input, batch_size, relu_layer -> in_size);
                 out_error = relu_layer -> error;
 
              break;
@@ -419,12 +419,12 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
             //printf("Error: %f\n",error);
         
             correct_count += count_matches(y_pred,y_target, last_layer -> out_size, batch_size);
-            //printf("Correct: %d\n",correct_count);
+            printf("Correct: %d\n",correct_count);
             mse_deriv(y_pred,y_target,nn->error, batch_size,y_size);
 
-            printf("********** nn error ***********\n");
-            printf("batch %d y_size %d\n",batch_size,y_size);
-            print_matrix(nn->error, batch_size,y_size);
+          //  printf("********** nn error ***********\n");
+           // printf("batch %d y_size %d\n",batch_size,y_size);
+           // print_matrix(nn->error, batch_size,y_size);
             update_errors(nn,batch_size,learning_rate);
 
             x_curr += x_size * batch_size;
@@ -585,8 +585,8 @@ void print_nn(NN *nn)
               print_matrix(fc_layer-> weights, fc_layer -> in_size, fc_layer -> out_size);
               printf("output:[%d,%d]\n", 1, fc_layer -> out_size);
               print_matrix(fc_layer->output,1,fc_layer -> out_size );
-              printf("error:[%d,%d]\n", 1, fc_layer -> out_size);
-              print_matrix(fc_layer->error,1, fc_layer -> out_size );
+              printf("error:[%d,%d]\n", 1, fc_layer -> in_size);
+              print_matrix(fc_layer->error,1, fc_layer -> in_size );
               printf("-------------------------\n");
               break;
             case Relu:
@@ -599,8 +599,8 @@ void print_nn(NN *nn)
              // print_matrix(relu_layer->input,1,relu_layer -> in_size );
               printf("output:[%d,%d]\n", 1,relu_layer -> out_size);
               print_matrix(relu_layer->output,1,relu_layer -> out_size );
-              printf("error:[%d,%d]\n", 1, relu_layer -> out_size);
-              print_matrix(relu_layer->error,1,relu_layer -> out_size );
+              printf("error:[%d,%d]\n", 1, relu_layer -> in_size);
+              print_matrix(relu_layer->error,1,relu_layer -> in_size );
               printf("-------------------------\n");
 
              break;
@@ -652,7 +652,7 @@ typedef struct
 ////////////////////////
 void main()
 {
-   /* 
+    
    int netsize = 5;
 
    NN* net = new_nn(netsize);
@@ -677,8 +677,8 @@ void main()
    open_file("labels.csv",10,1000,y);
    
    train(net,  x,  y, 5, 1,1000, 0.1);
-*/
 
+/*
 NN *nn;
 printf("%p\n",nn);
 nn = new_nn_debug();
@@ -693,7 +693,7 @@ print_nn(nn);
 train(nn, in, out, 1, 1, 1, 0.1);
 
 print_nn(nn);
-
+*/
 /*
    float matrix [12] = { 1, 2, 3, 4,
                            5, 6, 7, 8,
