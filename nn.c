@@ -326,9 +326,9 @@ void predict(NN* nn,float *x_curr,int batch_size){
             case FC:
               FCLayer* fc_layer = (FCLayer*) layer;
               fc_layer -> input = input;
-              
+              printf("before forward\n");
               forward(input, fc_layer -> output,fc_layer-> weights, fc_layer -> in_size, fc_layer -> out_size, batch_size);
-              
+              printf("after forward\n");
               input = fc_layer -> output;
               break;
             case Relu:
@@ -406,21 +406,21 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
   {
     for(int i=0;i<train_size;i++)
     {
-       
+           printf("before predict\n");
             predict(nn,x_curr,batch_size);
             Layer* last_layer = (Layer*) nn -> layer[nn->size-1];
 
             float *y_pred = last_layer -> output;
 
             float curr_error;
-        
+            printf("predict\n");
             mse(&curr_error, y_pred,y_target, batch_size,last_layer-> out_size);
             
             error = error + curr_error;
             //printf("Error: %f\n",error);
-        
+        printf("before correct count\n");
             correct_count += count_matches(y_pred,y_target, last_layer -> out_size, batch_size);
-           // printf("Correct: %d\n",correct_count);
+           printf("Correct: %d\n",correct_count);
         //    printf("-----------y_target--------\n");
          //   print_matrix(y_target, batch_size,last_layer->out_size);
          //   printf("-----------y_pred-----------\n");
@@ -431,8 +431,10 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
           //  printf("********** nn error ***********\n");
            // printf("batch %d y_size %d\n",batch_size,y_size);
            // print_matrix(nn->error, batch_size,y_size);
+           printf("before update\n");
             update_errors(nn,batch_size,learning_rate);
             //print_nn(nn);
+            printf("update\n");
             x_curr += x_size * batch_size;
             y_target += y_size * batch_size;
 
