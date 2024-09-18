@@ -415,7 +415,7 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
             float curr_error;
             printf("predict\n");
             mse(&curr_error, y_pred,y_target, batch_size,last_layer-> out_size);
-            
+          //  print_nn(nn,batch_size);
             error = error + curr_error;
             //printf("Error: %f\n",error);
         printf("before correct count\n");
@@ -433,7 +433,7 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
            // print_matrix(nn->error, batch_size,y_size);
            printf("before update\n");
             update_errors(nn,batch_size,learning_rate);
-            //print_nn(nn);
+          //  print_nn(nn,batch_size);
             printf("update\n");
             x_curr += x_size * batch_size;
             y_target += y_size * batch_size;
@@ -554,7 +554,7 @@ void init_nn(NN *nn)
     }
 }
 
-NN* new_nn_debug()
+NN* new_nn_debug(int batch_size)
 {
 
  
@@ -568,12 +568,12 @@ NN* new_nn_debug()
    nn -> in_size = 3;
    nn -> out_size = 2;
 
-   allocate_batch(nn,1);
+   allocate_batch(nn,batch_size);
 
    init_nn(nn);
     return nn;
 }
-void print_nn(NN *nn)
+void print_nn(NN *nn, int batch_size)
 {
     printf("=================== NN ==================\n");
     for(int i = 0; i < nn -> size;i++)
@@ -591,10 +591,10 @@ void print_nn(NN *nn)
              // print_matrix(fc_layer->input,1,fc_layer -> in_size );
               printf("weights[%d,%d]\n", fc_layer -> in_size, fc_layer -> out_size );
               print_matrix(fc_layer-> weights, fc_layer -> in_size, fc_layer -> out_size);
-              printf("output:[%d,%d]\n", 1, fc_layer -> out_size);
-              print_matrix(fc_layer->output,1,fc_layer -> out_size );
-              printf("error:[%d,%d]\n", 1, fc_layer -> in_size);
-              print_matrix(fc_layer->error,1, fc_layer -> in_size );
+              printf("output:[%d,%d]\n", batch_size, fc_layer -> out_size);
+              print_matrix(fc_layer->output,batch_size,fc_layer -> out_size );
+              printf("error:[%d,%d]\n", batch_size, fc_layer -> in_size);
+              print_matrix(fc_layer->error,batch_size, fc_layer -> in_size );
               printf("-------------------------\n");
               break;
             case Relu:
@@ -605,10 +605,10 @@ void print_nn(NN *nn)
               printf("out_size: %d \n",relu_layer -> out_size );
              // printf("input:[%d,%d]\n", 1,relu_layer -> in_size);
              // print_matrix(relu_layer->input,1,relu_layer -> in_size );
-              printf("output:[%d,%d]\n", 1,relu_layer -> out_size);
-              print_matrix(relu_layer->output,1,relu_layer -> out_size );
-              printf("error:[%d,%d]\n", 1, relu_layer -> in_size);
-              print_matrix(relu_layer->error,1,relu_layer -> in_size );
+              printf("output:[%d,%d]\n", batch_size,relu_layer -> out_size);
+              print_matrix(relu_layer->output,batch_size,relu_layer -> out_size );
+              printf("error:[%d,%d]\n", batch_size, relu_layer -> in_size);
+              print_matrix(relu_layer->error,batch_size,relu_layer -> in_size );
               printf("-------------------------\n");
 
              break;
@@ -684,24 +684,23 @@ void main()
    open_file("mnist.csv",28*28,1000,x);
    open_file("labels.csv",10,1000,y);
    
-   train(net,  x,  y,   10, 1,1000, 0.1);
+   train(net,  x,  y,   2, 1,1000, 0.1);
+
 
 /*
 NN *nn;
-printf("%p\n",nn);
-nn = new_nn_debug();
-printf("%p\n",nn);
-print_nn(nn);
+
+nn = new_nn_debug(2);
 
                   
-    float out[2] = {0,1};
-    float in[3] = {1,2,3};
+    float out[4] = {0,1,0,1};
+    float in[6] = {1,2,3,1,2,3};
 //void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_size, float learning_rate)
 
-train(nn, in, out, 1, 1, 1, 0.1);
+train(nn, in, out, 1, 2, 1, 0.1);
 
-print_nn(nn);
 */
+
 /*
    float matrix [12] = { 1, 2, 3, 4,
                            5, 6, 7, 8,
