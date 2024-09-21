@@ -60,12 +60,12 @@ void allocate_batch(NN* net,int batch_size)
         switch(layer->type){
             case FC:
                 FCLayer *fc_layer = (FCLayer*) layer;
-                fc_layer -> error = (float*) malloc(batch_size* fc_layer -> out_size * sizeof(float));
+                fc_layer -> error = (float*) malloc(batch_size* fc_layer -> in_size * sizeof(float));
                 fc_layer -> output = (float*) malloc(batch_size* fc_layer -> out_size * sizeof(float));
                 break;
             case Relu:
                 ReluLayer *relu_layer = (ReluLayer*) layer;
-                relu_layer -> error     = (float*) malloc(batch_size* relu_layer -> out_size * sizeof(float));
+                relu_layer -> error     = (float*) malloc(batch_size* relu_layer -> in_size * sizeof(float));
                 relu_layer -> output    = (float*) malloc(batch_size* relu_layer -> out_size * sizeof(float));
                 break;
 
@@ -326,9 +326,9 @@ void predict(NN* nn,float *x_curr,int batch_size){
             case FC:
               FCLayer* fc_layer = (FCLayer*) layer;
               fc_layer -> input = input;
-              printf("before forward\n");
+           //   printf("before forward\n");
               forward(input, fc_layer -> output,fc_layer-> weights, fc_layer -> in_size, fc_layer -> out_size, batch_size);
-              printf("after forward\n");
+             // printf("after forward\n");
               input = fc_layer -> output;
               break;
             case Relu:
@@ -402,25 +402,27 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
   float error = 0;
   int correct_count = 0;
 
+  int batches = train_size / batch_size;
   for(int e = 0; e<epochs;e++)
   {
-    for(int i=0;i<train_size;i++)
+    for(int i=0;i<batches;i++)
     {
-           printf("before predict\n");
+       //    printf("before predict\n");
+         //  printf("bench: %d\n",i);
             predict(nn,x_curr,batch_size);
             Layer* last_layer = (Layer*) nn -> layer[nn->size-1];
 
             float *y_pred = last_layer -> output;
 
             float curr_error;
-            printf("predict\n");
+            //printf("predict\n");
             mse(&curr_error, y_pred,y_target, batch_size,last_layer-> out_size);
           //  print_nn(nn,batch_size);
             error = error + curr_error;
             //printf("Error: %f\n",error);
-        printf("before correct count\n");
+        //printf("before correct count\n");
             correct_count += count_matches(y_pred,y_target, last_layer -> out_size, batch_size);
-           printf("Correct: %d\n",correct_count);
+          // printf("Correct: %d\n",correct_count);
         //    printf("-----------y_target--------\n");
          //   print_matrix(y_target, batch_size,last_layer->out_size);
          //   printf("-----------y_pred-----------\n");
@@ -431,10 +433,10 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
           //  printf("********** nn error ***********\n");
            // printf("batch %d y_size %d\n",batch_size,y_size);
            // print_matrix(nn->error, batch_size,y_size);
-           printf("before update\n");
+           //printf("before update\n");
             update_errors(nn,batch_size,learning_rate);
           //  print_nn(nn,batch_size);
-            printf("update\n");
+           // printf("update\n");
             x_curr += x_size * batch_size;
             y_target += y_size * batch_size;
 
@@ -662,19 +664,22 @@ void main()
 {
     
    int netsize = 5;
+   int batch_size = 1;
+   int epochs = 10;
+   int bench_size = 1000;
 
    NN* net = new_nn(netsize);
 
-   net-> layer[0] = (void*) new_FC_layer(28*28,512);
-   net-> layer[1] = (void*) new_Relu_layer(512);
-   net-> layer[2] = (void*) new_FC_layer(512,256);
-   net-> layer[3] = (void*) new_Relu_layer(256);
-   net-> layer[4] = (void*) new_FC_layer(256,10);
+   net-> layer[0] = (void*) new_FC_layer(28*28,1024); //512
+   net-> layer[1] = (void*) new_Relu_layer(1024); //512
+   net-> layer[2] = (void*) new_FC_layer(1024,512); //256
+   net-> layer[3] = (void*) new_Relu_layer(512);
+   net-> layer[4] = (void*) new_FC_layer(512,10);
 
    net -> in_size = 28*28;
    net -> out_size = 10;
 
-   allocate_batch(net,1);
+   allocate_batch(net,batch_size);
 
 
 
@@ -683,8 +688,8 @@ void main()
    float y[10*1000];
    open_file("mnist.csv",28*28,1000,x);
    open_file("labels.csv",10,1000,y);
-   
-   train(net,  x,  y,   2, 1,1000, 0.1);
+//   printf("inicio\n");
+   train(net,  x,  y,   epochs, batch_size,bench_size, 0.1);
 
 
 /*
