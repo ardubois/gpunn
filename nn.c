@@ -407,36 +407,26 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
   {
     for(int i=0;i<batches;i++)
     {
-       //    printf("before predict\n");
-         //  printf("bench: %d\n",i);
+       
             predict(nn,x_curr,batch_size);
             Layer* last_layer = (Layer*) nn -> layer[nn->size-1];
 
             float *y_pred = last_layer -> output;
 
             float curr_error;
-            //printf("predict\n");
+            
             mse(&curr_error, y_pred,y_target, batch_size,last_layer-> out_size);
-          //  print_nn(nn,batch_size);
+          
             error = error + curr_error;
-            //printf("Error: %f\n",error);
-        //printf("before correct count\n");
+           
             correct_count += count_matches(y_pred,y_target, last_layer -> out_size, batch_size);
-          // printf("Correct: %d\n",correct_count);
-        //    printf("-----------y_target--------\n");
-         //   print_matrix(y_target, batch_size,last_layer->out_size);
-         //   printf("-----------y_pred-----------\n");
-         //   print_matrix(y_pred, batch_size,last_layer->out_size);
+          
             
             mse_deriv(y_pred,y_target,nn->error, batch_size,y_size);
 
-          //  printf("********** nn error ***********\n");
-           // printf("batch %d y_size %d\n",batch_size,y_size);
-           // print_matrix(nn->error, batch_size,y_size);
-           //printf("before update\n");
+          
             update_errors(nn,batch_size,learning_rate);
-          //  print_nn(nn,batch_size);
-           // printf("update\n");
+
             x_curr += x_size * batch_size;
             y_target += y_size * batch_size;
 
@@ -451,6 +441,53 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
 
 }
 
+void test(NN* nn,  float* x, float* y,  int test_size)
+{
+
+  
+
+  int x_size = nn -> in_size;
+  int y_size = nn -> out_size;
+
+  
+  float *x_curr = x;
+  float *y_target = y;
+
+  float error = 0;
+  int correct_count = 0;
+
+  for(int i=0;i< test_size;i++)
+    {
+       
+            predict(nn,x_curr,1);
+            Layer* last_layer = (Layer*) nn -> layer[nn->size-1];
+
+            float *y_pred = last_layer -> output;
+
+            float curr_error;
+            //printf("predict\n");
+            mse(&curr_error, y_pred,y_target, 1,last_layer-> out_size);
+          //  print_nn(nn,batch_size);
+            error = error + curr_error;
+            //printf("Error: %f\n",error);
+        //printf("before correct count\n");
+            correct_count += count_matches(y_pred,y_target, last_layer -> out_size,1);
+          // printf("Correct: %d\n",correct_count);
+        //    printf("-----------y_target--------\n");
+         //   print_matrix(y_target, batch_size,last_layer->out_size);
+         //   printf("-----------y_pred-----------\n");
+         //   print_matrix(y_pred, batch_size,last_layer->out_size);
+            
+            mse_deriv(y_pred,y_target,nn->error, 1,y_size);
+            x_curr += x_size ;
+            y_target += y_size ;
+
+    }
+
+        printf("Test: %d, Error: %f, Correct: %f\n", test_size, error/test_size, (float)correct_count/test_size);
+       
+ 
+}
 
 void open_file(char *file, int size_entry, int size, float *out)
 {
@@ -665,8 +702,9 @@ void main()
     
    int netsize = 5;
    int batch_size = 1;
-   int epochs = 10;
+   int epochs = 5;
    int bench_size = 1000;
+   int test_size = 1000;
 
    NN* net = new_nn(netsize);
 
@@ -681,15 +719,21 @@ void main()
 
    allocate_batch(net,batch_size);
 
-
-
-
    float x[28*28*1000];
    float y[10*1000];
+
    open_file("mnist.csv",28*28,1000,x);
    open_file("labels.csv",10,1000,y);
-//   printf("inicio\n");
+   
    train(net,  x,  y,   epochs, batch_size,bench_size, 0.1);
+
+   float x_test[28*28*1000];
+   float y_test[10*1000];
+
+   open_file("test_mnist.csv",28*28,1000,x_test);
+   open_file("test_labels.csv",10,1000,y_test);
+
+   test(net,x_test,y_test, test_size);
 
 
 /*
