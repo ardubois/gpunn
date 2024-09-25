@@ -6,7 +6,7 @@
 #define FC 0
 #define Relu 1
 
-typedef struct // Cria uma STRUCT para armazenar os dados de uma pessoa
+typedef struct 
 {
   int type;
   float *error;
@@ -128,7 +128,7 @@ ReluLayer* new_Relu_layer(int size)
 void forward(float *in, float *out, float *weights, int m, int n, int k)
 {
     float sum; 
- //  printf("forward, m: %d, n: %d, k: %d\n",m,n,k);
+ 
    //   out(kxn) = input(kxm) * weights(mxn)
     for (int row = 0; row < k ; row ++)
     {
@@ -137,7 +137,7 @@ void forward(float *in, float *out, float *weights, int m, int n, int k)
           sum = 0;
           for(int i = 0; i < m; i++) 
           {
-            //printf("sum += in[%d] * weights[%d] --- i=%d,n=%d,k=%d,row=%d,col=%d\n",row * n + i, i * k + col,i,n,k,row,col );
+           
             sum = sum + in[row * m + i] * weights[i * n + col];
           }
           out[row * n + col] = sum;
@@ -146,67 +146,6 @@ void forward(float *in, float *out, float *weights, int m, int n, int k)
 
 }
 
-void mse(float *final_error, float *y_pred,float *y_target, int m,int n)
-{
-    // final_error = np.mean(np.power(y_target - y_pred, 2))
-
-    // final_error = sum((y_target - y_pred)^2)/m*n
-    float error = 0;
-    for (int i=0;i<m*n;i++)
-    {
-        float err = y_target[i]-y_pred[i];
-        error = error + err * err;
-    }
-
-    *final_error = error/(m*n);
-
-}
-
-int arg_max(float*v, int size){
-    float max = v[0];
-    int resp = 0;
-    for (int i=1;i<size; i++)
-    {
-        if(v[i]>max)
-        {
-            max = v[i];
-            resp = i;
-        }
-    }
-    return resp;
-}
-
-int find_winner(float*v, int size){
-    for (int i=0;i<size; i++)
-    {
-        if(v[i]==1)
-        {
-            return i;
-        }
-    }
-    assert(0);
-    return -1;
-}
-
-int count_matches(float *y_pred, float *y_target, int size, int batch_size)
-{
-   int count = 0;
-   float *y_pred_ptr = y_pred;
-   float *y_target_ptr = y_target;
-
-   for(int i=0;i<batch_size;i++)
-   {
-     
-     if(find_winner(y_target,size) == arg_max(y_pred,size))
-     {
-        count ++;
-     }
-     y_pred_ptr += size;
-     y_target_ptr += size;
-      
-   }
-   return count;
-}
 void mse_deriv(float *y_pred,float *y_target,float *error, int m,int n)
 {
     // error = 2 * (y_pred - y_true) / y_pred.size
@@ -313,6 +252,73 @@ void backward(float *out_error, float *in_error, float *input, float* weights, i
 */
 }
 
+
+/////////////////////// FUNCOES CPU
+//////////////////////////////////////////
+
+
+void mse(float *final_error, float *y_pred,float *y_target, int m,int n)
+{
+    // final_error = np.mean(np.power(y_target - y_pred, 2))
+
+    // final_error = sum((y_target - y_pred)^2)/m*n
+    float error = 0;
+    for (int i=0;i<m*n;i++)
+    {
+        float err = y_target[i]-y_pred[i];
+        error = error + err * err;
+    }
+
+    *final_error = error/(m*n);
+
+}
+
+int arg_max(float*v, int size){
+    float max = v[0];
+    int resp = 0;
+    for (int i=1;i<size; i++)
+    {
+        if(v[i]>max)
+        {
+            max = v[i];
+            resp = i;
+        }
+    }
+    return resp;
+}
+
+int find_winner(float*v, int size){
+    for (int i=0;i<size; i++)
+    {
+        if(v[i]==1)
+        {
+            return i;
+        }
+    }
+    assert(0);
+    return -1;
+}
+
+int count_matches(float *y_pred, float *y_target, int size, int batch_size)
+{
+   int count = 0;
+   float *y_pred_ptr = y_pred;
+   float *y_target_ptr = y_target;
+
+   for(int i=0;i<batch_size;i++)
+   {
+     
+     if(find_winner(y_target,size) == arg_max(y_pred,size))
+     {
+        count ++;
+     }
+     y_pred_ptr += size;
+     y_target_ptr += size;
+      
+   }
+   return count;
+}
+
 void predict(NN* nn,float *x_curr,int batch_size){
 
     
@@ -327,17 +333,17 @@ void predict(NN* nn,float *x_curr,int batch_size){
             case FC:
               FCLayer* fc_layer = (FCLayer*) layer;
               fc_layer -> input = input;
-           //   printf("before forward\n");
+           
               forward(input, fc_layer -> output,fc_layer-> weights, fc_layer -> in_size, fc_layer -> out_size, batch_size);
-             // printf("after forward\n");
+           
               input = fc_layer -> output;
               break;
             case Relu:
                 ReluLayer *relu_layer = (ReluLayer*) layer;
                 relu_layer -> input = input;
-              //  printf("before relu size %d\n", relu_layer->in_size);
+           
                 relu(input, relu_layer->output, batch_size, relu_layer->in_size);
-                //printf("after relu\n");
+           
                 input = relu_layer -> output;
 
              break;
@@ -480,6 +486,8 @@ void test(NN* nn,  float* x, float* y,  int test_size)
        
  
 }
+
+//////////// files
 
 void open_file(char *file, int size_entry, int size, float *out)
 {
