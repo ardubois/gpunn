@@ -200,11 +200,12 @@ int count_matches(float *y_pred, float *y_target, int size, int batch_size)
      if(find_winner(y_target,size) == arg_max(y_pred,size))
      {
         count ++;
-        y_pred_ptr += size;
-        y_target_ptr += size;
      }
-     return count; 
+     y_pred_ptr += size;
+     y_target_ptr += size;
+      
    }
+   return count;
 }
 void mse_deriv(float *y_pred,float *y_target,float *error, int m,int n)
 {
@@ -444,8 +445,6 @@ void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_si
 void test(NN* nn,  float* x, float* y,  int test_size)
 {
 
-  
-
   int x_size = nn -> in_size;
   int y_size = nn -> out_size;
 
@@ -465,18 +464,11 @@ void test(NN* nn,  float* x, float* y,  int test_size)
             float *y_pred = last_layer -> output;
 
             float curr_error;
-            //printf("predict\n");
+            
             mse(&curr_error, y_pred,y_target, 1,last_layer-> out_size);
-          //  print_nn(nn,batch_size);
             error = error + curr_error;
-            //printf("Error: %f\n",error);
-        //printf("before correct count\n");
+          
             correct_count += count_matches(y_pred,y_target, last_layer -> out_size,1);
-          // printf("Correct: %d\n",correct_count);
-        //    printf("-----------y_target--------\n");
-         //   print_matrix(y_target, batch_size,last_layer->out_size);
-         //   printf("-----------y_pred-----------\n");
-         //   print_matrix(y_pred, batch_size,last_layer->out_size);
             
             mse_deriv(y_pred,y_target,nn->error, 1,y_size);
             x_curr += x_size ;
@@ -663,46 +655,13 @@ void print_nn(NN *nn, int batch_size)
 
     }
 }
-/*
-
-typedef struct 
-{
-  int type;
-  float *error;
-  float *input;
-  float *output;
-  int in_size;
-  int out_size;
-  float *weights;
-} FCLayer; 
-
-typedef struct 
-{
-  int size;
-  int in_size;
-  int out_size;
-  void** layer;
-  float* error;
-} NN; 
-
-
-typedef struct 
-{
-  int type;
-  float *error;
-  float *input;
-  float *output;
-  int in_size;
-  int out_size;
-} ReluLayer; 
-*/
 ////////////////////////
 void main()
 {
     
    int netsize = 5;
-   int batch_size = 1;
-   int epochs = 5;
+   int batch_size = 32;
+   int epochs = 20;
    int bench_size = 1000;
    int test_size = 1000;
 
