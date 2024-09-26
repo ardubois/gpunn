@@ -9,20 +9,20 @@
 typedef struct 
 {
   int type;
-  float *error;
-  float *input;
-  float *output;
+  float *error; // gpu
+  float *input; // gpu
+  float *output; // gpu
   int in_size;
   int out_size;
-  float *weights;
+  float *weights; // gpu
 } FCLayer; 
 
 typedef struct 
 {
   int type;
-  float *error;
-  float *input;
-  float *output;
+  float *error; // gpu
+  float *input; // gpu
+  float *output; // gpu
   int in_size;
   int out_size;
 } ReluLayer; 
@@ -43,12 +43,14 @@ typedef struct
   int in_size;
   int out_size;
   void** layer;
-  float* error;
+  float* error; // gpu
 } NN; 
 
 
 /////////////// MEMORY ALLOCATION
-///////////////////////////
+/////////////////////////// TEM QUE MUDAR PARA FAZER AS ALOCACOES NA GPU
+//////
+
 void allocate_batch(NN* net,int batch_size)
 {
     int net_size = net -> size;
@@ -203,7 +205,6 @@ void backward(float *out_error, float *in_error, float *input, float* weights, i
 
 
     // in_error (bxm)= out_error(bxn) * transpose(weights) (nxm)
- //printf("backward, m: %d, n: %d, b: %d\n",m,n,b);
     
     for (int row = 0; row < b ; row ++)
     {
@@ -212,7 +213,6 @@ void backward(float *out_error, float *in_error, float *input, float* weights, i
           float sum = 0;
           for(int i = 0; i < n; i++) 
           {
-            //printf("sum += out_error[%d] * weights[%d] --- i=%d,m=%d,n=%d,b=%d,row=%d,col=%d\n", row * n + i, col * m + i, i, m,n, b, row,col);
             sum = sum + out_error[row * n + i] * weights[col * n + i];
           }
           in_error[row * m + col] = sum;
@@ -229,27 +229,13 @@ void backward(float *out_error, float *in_error, float *input, float* weights, i
           float sum = 0;
           for(int i = 0; i < b; i++) 
           {
-            //printf("sum += in[%d] * weights[%d] --- i=%d,n=%d,k=%d,row=%d,col=%d\n",row * n + i, i * k + col,i,n,k,row,col );
             sum = sum + input[i * m + row] * out_error[i * n + col];
           }
           weights[row * n + col] = weights[row * n + col] - lr * sum;
          }
     }
 
-/*
-    for (int row = 0; row < m ; row ++)
-    {
-        for(int col = 0; col < n; col ++)
-        {
-          float sum = 0;
-          for(int i = 0; i < b; i++) 
-          {
-            sum = sum + input[i * b + row] * out_error[i * n + col];
-          }
-          weights[row * n + col] = weights[row * n + col] - lr * sum;
-         }
-    }
-*/
+
 }
 
 
@@ -531,7 +517,7 @@ void open_file(char *file, int size_entry, int size, float *out)
 }
 
 
-////// DEBUG/////////////////////////////////////////////////////////////////////
+////// DEBUG FUNCTIONS/////////////////////////////////////////////////////////////////////
 //////////////////////////
 
 void print_matrix(float *matrix,int m,int n)
@@ -612,6 +598,7 @@ NN* new_nn_debug(int batch_size)
    init_nn(nn);
     return nn;
 }
+
 void print_nn(NN *nn, int batch_size)
 {
     printf("=================== NN ==================\n");
@@ -663,13 +650,14 @@ void print_nn(NN *nn, int batch_size)
 
     }
 }
+///////////////////////////// END DEBUG FUNCTIONS//////////////////////////////
 ////////////////////////
 void main()
 {
     
    int netsize = 5;
-   int batch_size = 32;
-   int epochs = 20;
+   int batch_size = 1;
+   int epochs = 5;
    int bench_size = 1000;
    int test_size = 1000;
 
@@ -702,51 +690,5 @@ void main()
 
    test(net,x_test,y_test, test_size);
 
-
-/*
-NN *nn;
-
-nn = new_nn_debug(2);
-
-                  
-    float out[4] = {0,1,0,1};
-    float in[6] = {1,2,3,1,2,3};
-//void train(NN* nn,  float* x, float* y, int epochs, int batch_size, int train_size, float learning_rate)
-
-train(nn, in, out, 1, 2, 1, 0.1);
-
-*/
-
-/*
-   float matrix [12] = { 1, 2, 3, 4,
-                           5, 6, 7, 8,
-                           9, 10, 11, 12
-                         }; // 3x4
-    float out[4] = {0,0,0,0};
-    float in[3] = {1,2,3};
-    print_matrix(matrix,3,4);
-    
-    forward(in, out, matrix, 3, 4, 1);
-    printf("Result\n");
-    print_matrix(out,1,4);
-    float out_error[4] = {1,2,3,4};
-    float in_error[3] = {0,0,0};
-    backward(out_error, in_error, in, matrix, 3, 4, 1, 0.1 );
-    printf("Back\n");
-    printf("in_error\n");
-    print_matrix(in_error,1,3);
-    printf("new_weights\n");
-    print_matrix(matrix,3,4);
-    float msec;
-    print_matrix(out,1,4);
-    print_matrix(out_error,1,4);
-    mse(&msec, out_error, out, 4, 1);
-    printf("mse\n%f\n",msec);
-    
-    float deriv[4] = {0,0,0,0}; 
-   mse_deriv(out_error, out, deriv, 1,4);
-   printf("mse deriv\n");
-   print_matrix(deriv,1,4);
-
- */   
+   
 }
